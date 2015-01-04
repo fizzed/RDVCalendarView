@@ -22,6 +22,7 @@
 // THE SOFTWARE.
 
 #import <UIKit/UIKit.h>
+#import "RDVCalendarYearPickerView.h"
 
 @class RDVCalendarDayCell;
 
@@ -35,7 +36,7 @@ typedef NS_OPTIONS(NSInteger, RDVCalendarViewDayCellSeparatorType) {
 
 @protocol RDVCalendarViewDelegate;
 
-@interface RDVCalendarView : UIView
+@interface RDVCalendarView : UIView <RDVCalendarYearPickerViewDelegate>
 
 #pragma mark - Managing the Delegate
 
@@ -49,7 +50,12 @@ typedef NS_OPTIONS(NSInteger, RDVCalendarViewDayCellSeparatorType) {
 /**
  * Returns the label, which contains the name of the currently displayed month. (read-only)
  */
-@property (nonatomic, readonly) UILabel *monthLabel;
+@property (nonatomic, readonly) UIButton *monthLabel;
+
+/**
+ * Returns the view used to pick a new year for the displayed month. (read-only)
+ */
+@property (nonatomic, readonly) RDVCalendarYearPickerView* yearPickerView;
 
 /**
  * Returns the back (previous month) button. (read-only)

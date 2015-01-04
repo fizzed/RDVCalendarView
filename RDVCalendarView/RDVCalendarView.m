@@ -41,6 +41,8 @@
     Class _dayCellClass;
     
     UIInterfaceOrientation _orientation;
+    
+    BOOL _showingYearPicker;
 }
 
 @property (atomic, strong) NSDateComponents *selectedDay;
@@ -76,10 +78,13 @@
         
         // Setup header view
         
-        _monthLabel = [[UILabel alloc] init];
-        [_monthLabel setFont:[UIFont systemFontOfSize:22]];
-        [_monthLabel setTextColor:[UIColor blackColor]];
-        [_monthLabel setTextAlignment:NSTextAlignmentCenter];
+        _monthLabel = [[UIButton alloc] init];
+        [_monthLabel setTitleColor:[UIColor blueColor] forState:UIControlStateNormal];
+        [_monthLabel.titleLabel setFont:[UIFont systemFontOfSize:22]];
+        [_monthLabel.titleLabel setTextAlignment:NSTextAlignmentCenter];
+        [_monthLabel addTarget:self action:@selector(showYearPicker)
+              forControlEvents:UIControlEventTouchUpInside];
+        
         [self addSubview:_monthLabel];
         
         _backButton = [[UIButton alloc] init];
@@ -140,6 +145,12 @@
 }
 
 - (void)layoutSubviews {
+    
+    //Prevent re layout if looking at Year Picker
+    if (_showingYearPicker) {
+        return;
+    }
+    
     CGSize viewSize = self.frame.size;
     CGSize headerSize = CGSizeMake(viewSize.width, 60.0f);
     CGFloat backButtonWidth = MAX([[self backButton] sizeThatFits:CGSizeMake(100, 50)].width, 44);
@@ -367,10 +378,11 @@
 
 - (void)updateMonthLabelMonth:(NSDateComponents*)month {
     NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
-    formatter.dateFormat = @"LLLL yyyy";
+    formatter.dateFormat = @"MMMM yyyy";
     
     NSDate *date = [month.calendar dateFromComponents:month];
-    self.monthLabel.text = [formatter stringFromDate:date];
+    //self.monthLabel.text = [formatter stringFromDate:date];
+    [_monthLabel setTitle:[formatter stringFromDate:date] forState:UIControlStateNormal];
 }
 
 - (void)updateMonthViewMonth:(NSDateComponents *)month {
@@ -425,12 +437,24 @@
     
     if (![oldDate isEqualToDate:selectedDate]) {
         NSCalendar *calendar = [self calendar];
-       
-        _selectedDay = [calendar components:NSYearCalendarUnit|
-                                           NSMonthCalendarUnit|
-                                              NSDayCalendarUnit
-                                   fromDate:selectedDate];
- 
+        
+        if (![self selectedDay]) {
+            [self setSelectedDay:[[NSDateComponents alloc] init]];
+        }
+        
+        NSDateComponents *selectedDateComponents = [calendar components:NSYearCalendarUnit|
+                                                                        NSMonthCalendarUnit|
+                                                                        NSDayCalendarUnit
+                                                               fromDate:selectedDate];
+        
+        if (![self selectedDay]) {
+            [self setSelectedDay:[[NSDateComponents alloc] init]];
+        }
+        
+        [[self selectedDay] setMonth:[selectedDateComponents month]];
+        [[self selectedDay] setYear:[selectedDateComponents year]];
+        [[self selectedDay] setDay:[selectedDateComponents day]];
+        
         self.month = [calendar components:NSYearCalendarUnit|
                                           NSMonthCalendarUnit|
                                           NSDayCalendarUnit|
@@ -608,6 +632,45 @@
 
 #pragma mark - Navigation
 
+- (void)showYearPicker{
+    CGRect yearPickerFrame = CGRectMake(0, 0, CGRectGetWidth(self.frame), CGRectGetHeight(self.frame));
+
+    _yearPickerView = [[RDVCalendarYearPickerView  alloc] initWithFrame:yearPickerFrame];
+    
+    [_yearPickerView setAutoresizingMask:UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight];
+    [_yearPickerView  setBackgroundColor:[UIColor whiteColor]];
+    [_yearPickerView  setDelegate:self];
+    [_yearPickerView setAnchorYear:[_month year]];
+    [_yearPickerView setSelectedYear:[_month year]];
+    _yearPickerView.currentYearColor = _currentDayColor;
+    _yearPickerView.selectedYearColor = _selectedDayColor;
+    _yearPickerView.normalYearColor = _normalDayColor;
+
+    [_yearPickerView.backButton setTitleColor:[self.backButton titleColorForState:UIControlStateNormal] forState:UIControlStateNormal];
+    _yearPickerView.backButton.titleLabel.font = self.backButton.titleLabel.font;
+    
+    [_yearPickerView.forwardButton setTitleColor:[self.forwardButton titleColorForState:UIControlStateNormal] forState:UIControlStateNormal];
+    _yearPickerView.forwardButton.titleLabel.font = self.forwardButton.titleLabel.font;
+    
+    _yearPickerView.title.font = self.monthLabel.titleLabel.font;
+    
+    _showingYearPicker = true;
+    
+    [self addSubview: _yearPickerView];
+}
+
+- (void)yearPickerView:(RDVCalendarYearPickerView *)yearPickerView didSelectYear:(NSInteger)year
+{
+    _showingYearPicker = false;
+    
+    [[self month] setYear:year];
+    
+    [self setDisplayedMonth:[self month]];
+    
+    [_yearPickerView removeFromSuperview];
+    
+}
+
 - (void)setDisplayedMonth:(NSDateComponents *)month {
     [self updateMonthLabelMonth:[self month]];
     [self updateMonthViewMonth:[self month]];
@@ -619,42 +682,20 @@
 
 - (void)showCurrentMonth {
     [[self month] setMonth:[[self currentDay] month]];
-    [[self month] setYear:[[self currentDay] year]];
- 
+    
     [self setDisplayedMonth:[self month]];
 }
 
 - (void)showPreviousMonth {
-    NSCalendar *calendar = [self calendar];
-    NSDateComponents *inc = [[NSDateComponents alloc] init];
-    inc.month = -1;
+    NSInteger month = [[self month] month] - 1;
+    [[self month] setMonth:month];
     
-    NSDate *date = [calendar dateFromComponents:self.month];
-    NSDate *newDate = [calendar dateByAddingComponents:inc toDate:date options:0];
-    
-    self.month = [calendar components:NSYearCalendarUnit|
-                  NSMonthCalendarUnit|
-                  NSDayCalendarUnit|
-                  NSWeekdayCalendarUnit|
-                  NSCalendarCalendarUnit fromDate:newDate];   
- 
     [self setDisplayedMonth:[self month]];
 }
 
 - (void)showNextMonth {
-
-    NSCalendar *calendar = [self calendar];
-    NSDateComponents *inc = [[NSDateComponents alloc] init];
-    inc.month = 1;
-    
-    NSDate *date = [calendar dateFromComponents:self.month];
-    NSDate *newDate = [calendar dateByAddingComponents:inc toDate:date options:0];
-    
-    self.month = [calendar components:NSYearCalendarUnit|
-                  NSMonthCalendarUnit|
-                  NSDayCalendarUnit|
-                  NSWeekdayCalendarUnit|
-                  NSCalendarCalendarUnit fromDate:newDate];
+    NSInteger month = [[self month] month] + 1;
+    [[self month] setMonth:month];
     
     [self setDisplayedMonth:[self month]];
 }
@@ -667,7 +708,7 @@
     [self setNeedsLayout];
 }
 
-#pragma mark - Orientation cnahge handling
+#pragma mark - Orientation change handling
 
 - (void)deviceDidChangeOrientation:(NSNotification *)notification {
     UIInterfaceOrientation orientation = [[UIApplication sharedApplication] statusBarOrientation];
