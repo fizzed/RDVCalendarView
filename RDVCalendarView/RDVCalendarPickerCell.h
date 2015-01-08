@@ -1,5 +1,5 @@
 //
-//  RDVCalendarYearPickerCell.m
+//  RDVCalendarYearPickerCell.h
 //  RDVCalendar
 //
 // Copyright (c) 2014 Douglas Drouillard
@@ -22,28 +22,24 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#import "RDVCalendarYearPickerCell.h"
+#import <UIKit/UIKit.h>
 
-@implementation RDVCalendarYearPickerCell
 
-+ (UIImage *) imageFromColor:(UIColor *)color {
-    //default to white color
-    color = color ? color : [UIColor whiteColor];
-    
-    CGRect rect = CGRectMake(0, 0, 1, 1);
-    UIGraphicsBeginImageContext(rect.size);
-    CGContextRef context = UIGraphicsGetCurrentContext();
-    CGContextSetFillColorWithColor(context, [color CGColor]);
+@interface RDVCalendarPickerCell : UIButton
 
-    CGContextFillRect(context, rect);
-    UIImage *img = UIGraphicsGetImageFromCurrentImageContext();
-    UIGraphicsEndImageContext();
-    return img;
-}
+/*
+ * Prepares a year cell for reuse by the Year Picker view.
+ */
+- (void)reset;
 
--(void) reset{
-    [self setHighlighted:NO];
-    [self setSelected:NO];
-}
+- (NSString *) getDisplayMonth;
+- (NSString *) getDisplayYear;
+
+@property (nonatomic) NSDateComponents * dateComponents;
+/**
+ * Dynamically create image so it can be set as Backgound Image for a given UI State
+ * Needed because Objective-C does not allow for setting background color for a given UI State
+ */
++ (UIImage *) imageFromColor:(UIColor *)color;
 
 @end

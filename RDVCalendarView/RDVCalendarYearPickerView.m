@@ -28,8 +28,7 @@ NSInteger const YearsInRange = 12;
 NSInteger const NumYearsToGoBackToStartRange = 5;
 
 @interface RDVCalendarYearPickerView (){
-
-    NSMutableArray* _visibleCells;
+    NSMutableArray *_visibleCells;
 }
 
 @end
@@ -109,7 +108,7 @@ NSInteger const NumYearsToGoBackToStartRange = 5;
     }
     
     //clear existing year cells
-    for (RDVCalendarYearPickerCell* visibleCell in _visibleCells) {
+    for (RDVCalendarPickerCell *visibleCell in _visibleCells) {
         [visibleCell removeFromSuperview];
     }
     
@@ -124,23 +123,19 @@ NSInteger const NumYearsToGoBackToStartRange = 5;
     for (NSInteger year = [self startYearOfRange]; year <= [self endYearOfRange]; year++ ){
 
         CGRect yearCellFrame = CGRectMake(column * yearCellWidth, yearRangeHeaderEndY + row * yearCellHeight, yearCellWidth, yearCellHeight);
-        RDVCalendarYearPickerCell* yearCell = [[RDVCalendarYearPickerCell alloc] initWithFrame:yearCellFrame];
+        RDVCalendarPickerCell *yearCell = [[RDVCalendarPickerCell alloc] initWithFrame:yearCellFrame];
         
         NSString *labelText = [NSString stringWithFormat:@"%ld", (long)year];
-        NSLog(@"Current color = %@", _normalYearColor);
-        
-        
+                
         [yearCell setTitle:labelText forState:UIControlStateNormal];
         [yearCell setTitleColor:[UIColor blackColor] forState: UIControlStateNormal];
         [yearCell setTitleColor:[UIColor whiteColor] forState: UIControlStateSelected];
         [yearCell setTitleColor:[UIColor whiteColor] forState: UIControlStateHighlighted];
         [yearCell.titleLabel setTextAlignment: NSTextAlignmentCenter];
-        [yearCell setBackgroundImage:[RDVCalendarYearPickerCell imageFromColor:_normalYearColor] forState: UIControlStateNormal];
-        [yearCell setBackgroundImage:[RDVCalendarYearPickerCell imageFromColor:_selectedYearColor] forState: UIControlStateSelected ];
-        [yearCell setBackgroundImage:[RDVCalendarYearPickerCell imageFromColor:_selectedYearColor] forState: UIControlStateHighlighted];
+        [yearCell setBackgroundImage:[RDVCalendarPickerCell imageFromColor:_normalYearColor] forState: UIControlStateNormal];
+        [yearCell setBackgroundImage:[RDVCalendarPickerCell imageFromColor:_selectedYearColor] forState: UIControlStateSelected ];
+        [yearCell setBackgroundImage:[RDVCalendarPickerCell imageFromColor:_selectedYearColor] forState: UIControlStateHighlighted];
         [yearCell addTarget:self action:@selector(selectedYear:) forControlEvents:UIControlEventTouchUpInside];
-        
-        NSLog(@"Comparing year %ld to selected year %ld", (long)year, (long)_selectedYear);
         
         if(year == _selectedYear){
             [yearCell setSelected:YES];
@@ -179,10 +174,11 @@ NSInteger const NumYearsToGoBackToStartRange = 5;
 
 - (void) reloadData
 {
+    
     //re-use existing year cells
     NSInteger indexOfCell = 0;
     for (NSInteger year = self.startYearOfRange; year <= self.endYearOfRange; year++ ){
-        RDVCalendarYearPickerCell* yearCell = _visibleCells[indexOfCell];
+        RDVCalendarPickerCell *yearCell = _visibleCells[indexOfCell];
         [yearCell reset];
         
         if(year == _selectedYear){
@@ -224,11 +220,11 @@ NSInteger const NumYearsToGoBackToStartRange = 5;
 -(void) configureSwipeEvents
 {
     // support for swiping forward/back year ranges
-    UISwipeGestureRecognizer* swipeLeftGestureRecognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(swipeLeft:)];
+    UISwipeGestureRecognizer *swipeLeftGestureRecognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(swipeLeft:)];
     swipeLeftGestureRecognizer.direction = UISwipeGestureRecognizerDirectionLeft;
     [self addGestureRecognizer:swipeLeftGestureRecognizer];
     
-    UISwipeGestureRecognizer* swipeRightGestureRecognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(swipeRight:)];
+    UISwipeGestureRecognizer *swipeRightGestureRecognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(swipeRight:)];
     swipeRightGestureRecognizer.direction = UISwipeGestureRecognizerDirectionRight;
     [self addGestureRecognizer:swipeRightGestureRecognizer];
 
@@ -250,7 +246,7 @@ NSInteger const NumYearsToGoBackToStartRange = 5;
 
 - (void) selectedYear:(id)sender
 {
-    RDVCalendarYearPickerCell* yearSelectedCell = (RDVCalendarYearPickerCell*) sender;
+    RDVCalendarPickerCell *yearSelectedCell = (RDVCalendarPickerCell *) sender;
     NSInteger yearSelected = (NSInteger) [yearSelectedCell.titleLabel.text intValue];
     
     [_visibleCells makeObjectsPerformSelector:@selector(reset)];

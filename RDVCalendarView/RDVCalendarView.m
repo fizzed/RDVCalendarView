@@ -42,7 +42,7 @@
     
     UIInterfaceOrientation _orientation;
     
-    BOOL _showingYearPicker;
+    BOOL _showingMonthPicker;
 }
 
 @property (atomic, strong) NSDateComponents *selectedDay;
@@ -82,7 +82,7 @@
         [_monthLabel setTitleColor:[UIColor blueColor] forState:UIControlStateNormal];
         [_monthLabel.titleLabel setFont:[UIFont systemFontOfSize:22]];
         [_monthLabel.titleLabel setTextAlignment:NSTextAlignmentCenter];
-        [_monthLabel addTarget:self action:@selector(showYearPicker)
+        [_monthLabel addTarget:self action:@selector(showMonthPicker)
               forControlEvents:UIControlEventTouchUpInside];
         
         [self addSubview:_monthLabel];
@@ -145,9 +145,9 @@
 }
 
 - (void)layoutSubviews {
-    
+        
     //Prevent re layout if looking at Year Picker
-    if (_showingYearPicker) {
+    if (_showingMonthPicker) {
         return;
     }
     
@@ -639,45 +639,114 @@
 }
 
 #pragma mark - Navigation
+//- (void)showPicker{
+//    CGRect pickerFrame = CGRectMake(0, 0, CGRectGetWidth(self.frame), CGRectGetHeight(self.frame));
+//    
+//    _pickerView = [[RDVCalendarPickerView  alloc] initWithFrame:pickerFrame];
+//     
+//    [_pickerView setAutoresizingMask:UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight];
+//    [_pickerView setBackgroundColor:[UIColor whiteColor]];
+//    [_pickerView setDelegate:self];
+//    [_pickerView setCurrentMonth:self.month];
+//
+//    _pickerView.currentDateColor = _currentDayColor;
+//    _pickerView.selectedDateColor = _selectedDayColor;
+//    _pickerView.normalDateColor = _normalDayColor;
+//    _pickerView.actionColor = _normalDayColor;
+//    _pickerView.headerFont = _normalDayColor;
+//    
+//    [_pickerView.backButton setTitleColor:[self.backButton titleColorForState:UIControlStateNormal] forState:UIControlStateNormal];
+//    _pickerView.backButton.titleLabel.font = self.backButton.titleLabel.font;
+//    [_pickerView.forwardButton setTitleColor:[self.forwardButton titleColorForState:UIControlStateNormal] forState:UIControlStateNormal];
+//    _pickerView.forwardButton.titleLabel.font = self.forwardButton.titleLabel.font;
+//    _pickerView.title.font = self.monthLabel.titleLabel.font;
+//    
+//    _showingYearPicker = true;
+//    [self addSubview: _pickerView];
+//}
 
-- (void)showYearPicker{
-    CGRect yearPickerFrame = CGRectMake(0, 0, CGRectGetWidth(self.frame), CGRectGetHeight(self.frame));
+//- (void)showYearPicker{
+//    CGRect yearPickerFrame = CGRectMake(0, 0, CGRectGetWidth(self.frame), CGRectGetHeight(self.frame));
+//
+//    
+//    _yearPickerView = [[RDVCalendarYearPickerView  alloc] initWithFrame:yearPickerFrame];
+//    
+//    [_yearPickerView setAutoresizingMask:UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight];
+//    [_yearPickerView  setBackgroundColor:[UIColor whiteColor]];
+//    [_yearPickerView  setDelegate:self];
+//    [_yearPickerView setAnchorYear:[_month year]];
+//    [_yearPickerView setSelectedYear:[_month year]];
+//    _yearPickerView.currentYearColor = _currentDayColor;
+//    _yearPickerView.selectedYearColor = _selectedDayColor;
+//    _yearPickerView.normalYearColor = _normalDayColor;
+//
+//    [_yearPickerView.backButton setTitleColor:[self.backButton titleColorForState:UIControlStateNormal] forState:UIControlStateNormal];
+//    _yearPickerView.backButton.titleLabel.font = self.backButton.titleLabel.font;
+//    
+//    [_yearPickerView.forwardButton setTitleColor:[self.forwardButton titleColorForState:UIControlStateNormal] forState:UIControlStateNormal];
+//    _yearPickerView.forwardButton.titleLabel.font = self.forwardButton.titleLabel.font;
+//    
+//    _yearPickerView.title.font = self.monthLabel.titleLabel.font;
+//    
+//    _showingYearPicker = true;
+//    [self addSubview: _yearPickerView];
+//}
 
-    
-    _yearPickerView = [[RDVCalendarYearPickerView  alloc] initWithFrame:yearPickerFrame];
-    
-    [_yearPickerView setAutoresizingMask:UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight];
-    [_yearPickerView  setBackgroundColor:[UIColor whiteColor]];
-    [_yearPickerView  setDelegate:self];
-    [_yearPickerView setAnchorYear:[_month year]];
-    [_yearPickerView setSelectedYear:[_month year]];
-    _yearPickerView.currentYearColor = _currentDayColor;
-    _yearPickerView.selectedYearColor = _selectedDayColor;
-    _yearPickerView.normalYearColor = _normalDayColor;
+//- (void)yearPickerView:(RDVCalendarYearPickerView *)yearPickerView didSelectYear:(NSInteger)year
+//{
+//    _showingYearPicker = false;
+//    
+//    [[self month] setYear:year];
+//    
+//    [self setDisplayedMonth:[self month]];
+//    
+//    [_yearPickerView removeFromSuperview];
+//    
+//}
 
-    [_yearPickerView.backButton setTitleColor:[self.backButton titleColorForState:UIControlStateNormal] forState:UIControlStateNormal];
-    _yearPickerView.backButton.titleLabel.font = self.backButton.titleLabel.font;
+- (void)showMonthPicker{
+    CGRect monthPickerFrame = CGRectMake(0, 0, CGRectGetWidth(self.frame), CGRectGetHeight(self.frame));
     
-    [_yearPickerView.forwardButton setTitleColor:[self.forwardButton titleColorForState:UIControlStateNormal] forState:UIControlStateNormal];
-    _yearPickerView.forwardButton.titleLabel.font = self.forwardButton.titleLabel.font;
+    _monthPickerView = [[RDVCalendarMonthPickerView  alloc] initWithFrame:monthPickerFrame];
     
-    _yearPickerView.title.font = self.monthLabel.titleLabel.font;
+    [_monthPickerView setAutoresizingMask:UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight];
+    [_monthPickerView  setBackgroundColor:[UIColor whiteColor]];
+    [_monthPickerView  setDelegate:self];
     
-    _showingYearPicker = true;
-    [self addSubview: _yearPickerView];
+    _monthPickerView.currentMonthColor = _currentDayColor;
+    _monthPickerView.selectedMonthColor = _selectedDayColor;
+    _monthPickerView.normalMonthColor = _normalDayColor;
+    
+    [_monthPickerView.backButton setTitleColor:[self.backButton titleColorForState:UIControlStateNormal] forState:UIControlStateNormal];
+    _monthPickerView.backButton.titleLabel.font = self.backButton.titleLabel.font;
+    
+    [_monthPickerView.forwardButton setTitleColor:[self.forwardButton titleColorForState:UIControlStateNormal] forState:UIControlStateNormal];
+    _monthPickerView.forwardButton.titleLabel.font = self.forwardButton.titleLabel.font;
+    
+    _monthPickerView.title.font = self.monthLabel.titleLabel.font;
+    
+    _showingMonthPicker = true;
+    
+    [_monthPickerView setCurrentMonth:self.month];
+    
+    [self addSubview: _monthPickerView];
 }
 
-- (void)yearPickerView:(RDVCalendarYearPickerView *)yearPickerView didSelectYear:(NSInteger)year
+- (void)monthPickerView:(RDVCalendarMonthPickerView *)monthPickerView didSelectMonth:(NSDateComponents *)returnedMonth
 {
-    _showingYearPicker = false;
+    _showingMonthPicker = false;
+ 
+    [self.month setMonth:[returnedMonth month]];
+    [self.month setYear:[returnedMonth year]];
     
-    [[self month] setYear:year];
+    [self setDisplayedMonth:self.month];
     
-    [self setDisplayedMonth:[self month]];
-    
-    [_yearPickerView removeFromSuperview];
+    [_monthPickerView removeFromSuperview];
     
 }
+
+
+
 
 - (void)setDisplayedMonth:(NSDateComponents *)month {
     [self updateMonthLabelMonth:[self month]];
