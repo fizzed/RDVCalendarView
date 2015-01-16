@@ -38,11 +38,22 @@
     return formattedMonth;
 }
 
+
+
+
+
 -(NSString *) getDisplayYear
 {
     NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
-    formatter.dateFormat = @"YYYY";
-    return [formatter stringFromDate: [self.dateComponents date]];
+    formatter.dateFormat = @"yyyy";
+    [self.dateComponents setDay:1];
+    
+    NSDate *date = [self.dateComponents.calendar dateFromComponents:self.dateComponents];
+    //NSDate *date = [year.calendar dateFromComponents:year];
+    
+   NSString *formattedYear = [[NSString alloc] initWithString:[formatter stringFromDate:date]];
+   
+    return formattedYear;
 }
 
 

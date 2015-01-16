@@ -51,7 +51,7 @@
 /**
  * Tells the delegate that the specified year is now selected.
  */
-- (void)yearPickerView:(RDVCalendarYearPickerView *)yearPickerView didSelectYear:(NSInteger)year;
+- (void)yearPickerView:(RDVCalendarYearPickerView *)yearPickerView didSelectYear:(NSDateComponents *)year;
 
 @end
 
@@ -73,14 +73,9 @@
 @property (nonatomic, readonly) UIButton *forwardButton;
 
 /**
- * The current year the range of years shown is being anchored around.
+ * The Title for range of years displayed
  */
-@property NSInteger anchorYear;
-
-/**
- * Returns the currently selected year.
- */
-@property NSInteger selectedYear;
+@property UILabel *title;
 
 /**
  * Returs the color of the current year picker cell.
@@ -98,18 +93,13 @@
 @property (nonatomic) UIColor *selectedYearColor;
 
 /**
- * The Title for range of years displayed
+ * Returns the currently selected year.
  */
-@property UILabel *rangeTitle;
-
-///**
-// * Sets the year which to anchor the year range around.
-// */
-//-(void) setAnchorYear:(NSInteger)year;
+@property (nonatomic) NSDateComponents *selectedYear;
 
 /**
  * Returs the color of the selected year picker cell.
  */
--(void) setSelectedYear:(NSInteger)year;
+-(void) setSelectedYear:(NSDateComponents *)year;
 
 @end

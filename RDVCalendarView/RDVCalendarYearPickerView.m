@@ -31,8 +31,14 @@ NSInteger const NumYearsToGoBackToStartRange = 5;
     NSMutableArray *_visibleCells;
 }
 
-@end
+/**
+ * The current year the range of years shown is being anchored around.
+ */
+@property (nonatomic) NSDateComponents *anchorYearForDisplayedRange;
 
+@property (nonatomic) NSDateComponents *currentYear;
+
+@end
 
 @implementation RDVCalendarYearPickerView
 
@@ -42,9 +48,9 @@ NSInteger const NumYearsToGoBackToStartRange = 5;
     if (self) {
         _visibleCells = [[NSMutableArray alloc] initWithCapacity:YearsInRange];
         
-        _rangeTitle = [[UILabel alloc]initWithFrame:CGRectMake(0,0, self.bounds.size.width, 150)];
-        _rangeTitle.textAlignment = NSTextAlignmentCenter;
-        [self addSubview:_rangeTitle];
+        _title = [[UILabel alloc]initWithFrame:CGRectMake(0,0, self.bounds.size.width, 150)];
+        _title.textAlignment = NSTextAlignmentCenter;
+        [self addSubview:_title];
         
         _backButton = [[UIButton alloc] init];
         [_backButton setTitleColor:[UIColor blueColor] forState:UIControlStateNormal];
@@ -61,6 +67,9 @@ NSInteger const NumYearsToGoBackToStartRange = 5;
         [self addSubview:_forwardButton];
         
         self.backgroundColor = [UIColor whiteColor];
+        
+        _currentYear = [self.calendar components:NSDayCalendarUnit|NSMonthCalendarUnit|NSYearCalendarUnit fromDate:[NSDate date]];
+
         
         [self configureSwipeEvents];
     }
@@ -86,7 +95,7 @@ NSInteger const NumYearsToGoBackToStartRange = 5;
     [self.backButton setFrame:CGRectMake(10, roundf(headerSize.height / 2 - previousMonthButtonSize.height / 2),
                                            previousMonthButtonSize.width, previousMonthButtonSize.height)];
     
-    [self.rangeTitle setFrame:CGRectMake(roundf(headerSize.width / 2 - titleSize.width / 2),
+    [self.title setFrame:CGRectMake(roundf(headerSize.width / 2 - titleSize.width / 2),
                                            roundf(headerSize.height / 2 - titleSize.height / 2),
                                            titleSize.width, titleSize.height)];
     
@@ -97,7 +106,7 @@ NSInteger const NumYearsToGoBackToStartRange = 5;
     CGFloat yearCellWidth = 0;
     yearCellWidth = roundf(viewSize.width / 4);
     
-    CGFloat yearRangeHeaderEndY = CGRectGetMaxY([self.rangeTitle frame]);
+    CGFloat yearRangeHeaderEndY = CGRectGetMaxY([self.title frame]);
     CGFloat yearCellHeight = 0;
     
     if (viewSize.width > viewSize.height) {
@@ -137,10 +146,6 @@ NSInteger const NumYearsToGoBackToStartRange = 5;
         [yearCell setBackgroundImage:[RDVCalendarPickerCell imageFromColor:_selectedYearColor] forState: UIControlStateHighlighted];
         [yearCell addTarget:self action:@selector(selectedYear:) forControlEvents:UIControlEventTouchUpInside];
         
-        if(year == _selectedYear){
-            [yearCell setSelected:YES];
-        }
-        
         [_visibleCells addObject:yearCell];
         
         [self addSubview:yearCell];
@@ -154,12 +159,66 @@ NSInteger const NumYearsToGoBackToStartRange = 5;
             column++;
         }
     }
+    
+    [self reloadData];
 
 }
 
+- (void) reloadData
+{
+    
+    
+//    NSDateComponents *dateComponent = [NSDateComponents alloc];
+//    [dateComponent setCalendar:calendar];
+//    [dateComponent setYear:displayedYear];
+//    [dateComponent setMonth:month];
+//    
+//    monthCell.dateComponents = dateComponent;
+//    
+//    NSString *labelText = [monthCell getDisplayMonth];
+//    
+//    [monthCell setTitle:labelText forState:UIControlStateNormal];
+    
+
+    //re-use existing year cells
+    NSInteger indexOfCell = 0;
+    NSCalendar *calendar = [self calendar];
+    
+    for (NSInteger year = self.startYearOfRange; year <= self.endYearOfRange; year++ ){
+        RDVCalendarPickerCell *yearCell = _visibleCells[indexOfCell];
+        [yearCell reset];
+        [yearCell setBackgroundImage:[RDVCalendarPickerCell imageFromColor:_normalYearColor] forState: UIControlStateNormal];
+        
+        NSDateComponents *dateComponent = [NSDateComponents alloc];
+        [dateComponent setCalendar:calendar];
+        [dateComponent setYear:year];
+        [dateComponent setMonth:1];
+        
+        yearCell.dateComponents = dateComponent;
+        
+        NSString *labelText = [NSString stringWithFormat:@"%ld", year];
+        
+        [yearCell setTitle:labelText forState:(UIControlStateNormal)];
+        
+        //if actual year
+        if(year == [_selectedYear year]){
+            [yearCell setSelected:YES];
+        }
+        else if(year == [_currentYear year]){
+            [yearCell setBackgroundImage:[RDVCalendarPickerCell imageFromColor:_currentYearColor] forState: UIControlStateNormal];
+        }
+     
+        
+        indexOfCell++;
+    }
+}
+
+
+#pragma mark - Updating Year shown
+
 - (NSInteger) startYearOfRange
 {
-    return _anchorYear - NumYearsToGoBackToStartRange;
+    return [_anchorYearForDisplayedRange year] - NumYearsToGoBackToStartRange;
 }
 
 - (NSInteger) endYearOfRange
@@ -169,53 +228,39 @@ NSInteger const NumYearsToGoBackToStartRange = 5;
 
 - (void) updateTitle:(NSInteger)year
 {
-    _rangeTitle.text = [NSString stringWithFormat:@"%ld-%ld", self.startYearOfRange, self.endYearOfRange];
+    _title.text = [NSString stringWithFormat:@"%ld-%ld", self.startYearOfRange, self.endYearOfRange];
 }
 
-- (void) reloadData
+- (void) setAnchorYearForDisplayedRange:(NSDateComponents *)year
 {
+    // need to make a copy here because the displayed year is manipulated
+    // through navigation. However, those changes might be abandoned by the user
+    _anchorYearForDisplayedRange = [year copy];
+    [self updateTitle: [_anchorYearForDisplayedRange year]];
+}
+
+- (void) setSelectedYear:(NSDateComponents *)year
+{
+    _selectedYear = year;
+    [self setAnchorYearForDisplayedRange:_selectedYear];
     
-    //re-use existing year cells
-    NSInteger indexOfCell = 0;
-    for (NSInteger year = self.startYearOfRange; year <= self.endYearOfRange; year++ ){
-        RDVCalendarPickerCell *yearCell = _visibleCells[indexOfCell];
-        [yearCell reset];
-        
-        if(year == _selectedYear){
-            [yearCell setSelected:YES];
-        }
-        
-        NSString *labelText = [NSString stringWithFormat:@"%ld", year];
-        
-       [yearCell setTitle:labelText forState:(UIControlStateNormal)];
-        
-        indexOfCell++;
-    }
 }
 
--(void) setAnchorAndSelectedYear:(NSInteger) year{
-    [self setSelectedYear:year];
-    [self setAnchorYear:year];
-}
-
-//-(void) setAnchorYear:(NSInteger)year
-//{
-//    _currentAnchorYear = year;
-//    [self updateTitle:year];
-//}
+#pragma mark - Navigation
 
 - (void) showNextYear
 {
-    [self setAnchorYear:self.anchorYear + YearsInRange];
+    [self.anchorYearForDisplayedRange setYear:[self.anchorYearForDisplayedRange year] + YearsInRange];
     [self reloadData];
 }
 
 - (void) showPreviousYear
 {
-    [self setAnchorYear:self.anchorYear - YearsInRange];
+    [self.anchorYearForDisplayedRange setYear:[self.anchorYearForDisplayedRange year] - YearsInRange];
     [self reloadData];
 }
 
+#pragma mark - Configure Swipe Events
 
 -(void) configureSwipeEvents
 {
@@ -244,19 +289,35 @@ NSInteger const NumYearsToGoBackToStartRange = 5;
     }];
 }
 
+#pragma mark - Messaging Delegate
+
 - (void) selectedYear:(id)sender
 {
     RDVCalendarPickerCell *yearSelectedCell = (RDVCalendarPickerCell *) sender;
-    NSInteger yearSelected = (NSInteger) [yearSelectedCell.titleLabel.text intValue];
+    NSDateComponents* yearSelected = yearSelectedCell.dateComponents;
     
     [_visibleCells makeObjectsPerformSelector:@selector(reset)];
     
     [yearSelectedCell setSelected:YES];
-    [self setSelectedYear:yearSelected];
+    _selectedYear = yearSelected;
+    
+    NSLog(@"This is year returned %@", yearSelected);
     
     if ([self.delegate respondsToSelector:@selector(yearPickerView:didSelectYear:)]) {
         [self.delegate yearPickerView:self didSelectYear:yearSelected];
     }
+}
+
+#pragma mark - Helper methods
+
+- (NSCalendar *)calendar
+{
+    static NSCalendar *calendar = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        calendar = [NSCalendar autoupdatingCurrentCalendar];
+    });
+    return calendar;
 }
 
 @end

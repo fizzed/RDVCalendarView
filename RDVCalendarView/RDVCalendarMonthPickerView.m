@@ -199,16 +199,17 @@
         
         [monthCell setTitle:labelText forState:UIControlStateNormal];
         
+        
         //if selected
         if(month == [_selectedMonth month] && displayedYear == [_selectedMonth year]){
             [monthCell setSelected:YES];
         }
-        
-        //if the initial month set
-        if(month == [_currentMonth month] && displayedYear == [_currentMonth year]){
+        //if it is the actual month
+        else if(month == [_currentMonth month] && displayedYear == [_currentMonth year]){
             [monthCell setBackgroundImage:[RDVCalendarPickerCell imageFromColor:_currentMonthColor] forState: UIControlStateNormal];
         }
         
+   
         indexOfCell++;
     }
     
@@ -292,7 +293,7 @@
     [_yearPickerView setAutoresizingMask:UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight];
     [_yearPickerView  setBackgroundColor:[UIColor whiteColor]];
     [_yearPickerView  setDelegate:self];
-    [_yearPickerView setSelectedYear:[self.displayedYear year]];
+    [_yearPickerView setSelectedYear:self.displayedYear];
     
     _yearPickerView.currentYearColor = _currentMonthColor;
     _yearPickerView.selectedYearColor = _selectedMonthColor;
@@ -304,18 +305,18 @@
     [_yearPickerView.forwardButton setTitleColor:[self.forwardButton titleColorForState:UIControlStateNormal] forState:UIControlStateNormal];
     _yearPickerView.forwardButton.titleLabel.font = self.forwardButton.titleLabel.font;
     
-    [_yearPickerView.rangeTitle setFont:self.yearTitle.titleLabel.font];
+    [_yearPickerView.title setFont:self.yearTitle.titleLabel.font];
     
     _showingYearPicker = true;
     
     [self addSubview: _yearPickerView];
 }
 
-- (void)yearPickerView:(RDVCalendarYearPickerView *)yearPickerView didSelectYear:(NSInteger)year
+- (void)yearPickerView:(RDVCalendarYearPickerView *)yearPickerView didSelectYear:(NSDateComponents *)selectedYear
 {
     _showingYearPicker = false;
     
-    [self.displayedYear setYear:year];
+    [self.displayedYear setYear:[selectedYear year]];
     [self setDisplayedYearTitle:self.displayedYear];
 
     [_yearPickerView removeFromSuperview];

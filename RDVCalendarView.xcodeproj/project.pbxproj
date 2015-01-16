@@ -154,18 +154,18 @@
 		62F77D3B17BE0080009873CE /* RDVCalendarView */ = {
 			isa = PBXGroup;
 			children = (
-				1432AAFA1A59AB5C00A8540D /* RDVCalendarView.h */,
-				1432AAFB1A59AB5C00A8540D /* RDVCalendarView.m */,
-				1432AAF41A59AAC600A8540D /* RDVCalendarPickerCell.h */,
-				1432AAF51A59AAC600A8540D /* RDVCalendarPickerCell.m */,
-				1432AAF61A59AAC600A8540D /* RDVCalendarYearPickerView.h */,
-				1432AAF71A59AAC600A8540D /* RDVCalendarYearPickerView.m */,
 				62F77D5217BE00A7009873CE /* RDVCalendarViewController.h */,
 				62F77D5317BE00A7009873CE /* RDVCalendarViewController.m */,
+				1432AAFA1A59AB5C00A8540D /* RDVCalendarView.h */,
+				1432AAFB1A59AB5C00A8540D /* RDVCalendarView.m */,
 				62F77D5817BE0105009873CE /* RDVCalendarDayCell.h */,
 				62F77D5917BE0105009873CE /* RDVCalendarDayCell.m */,
 				1432AB021A5C5B7B00A8540D /* RDVCalendarMonthPickerView.h */,
 				1432AB031A5C5B7B00A8540D /* RDVCalendarMonthPickerView.m */,
+				1432AAF61A59AAC600A8540D /* RDVCalendarYearPickerView.h */,
+				1432AAF71A59AAC600A8540D /* RDVCalendarYearPickerView.m */,
+				1432AAF41A59AAC600A8540D /* RDVCalendarPickerCell.h */,
+				1432AAF51A59AAC600A8540D /* RDVCalendarPickerCell.m */,
 			);
 			path = RDVCalendarView;
 			sourceTree = "<group>";
