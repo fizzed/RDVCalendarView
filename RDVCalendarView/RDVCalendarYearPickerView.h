@@ -75,7 +75,7 @@
 /**
  * The current year the range of years shown is being anchored around.
  */
-@property NSInteger currentAnchorYear;
+@property NSInteger anchorYear;
 
 /**
  * Returns the currently selected year.
@@ -100,12 +100,12 @@
 /**
  * The Title for range of years displayed
  */
-@property UILabel *title;
+@property UILabel *rangeTitle;
 
-/**
- * Sets the year which to anchor the year range around.
- */
--(void) setAnchorYear:(NSInteger)year;
+///**
+// * Sets the year which to anchor the year range around.
+// */
+//-(void) setAnchorYear:(NSInteger)year;
 
 /**
  * Returs the color of the selected year picker cell.

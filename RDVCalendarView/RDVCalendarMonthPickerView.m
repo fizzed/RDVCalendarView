@@ -28,8 +28,21 @@
 @interface RDVCalendarMonthPickerView (){
     NSMutableArray* _visibleCells;
     
+    /**
+     * The current month of the date in reality
+     */
     BOOL _showingYearPicker;
 }
+
+/**
+ * The current month of the date in reality
+ */
+@property (nonatomic) NSDateComponents *currentMonth;
+
+/**
+ * This the month that the current picker view is being built around.
+ */
+@property (nonatomic) NSDateComponents *displayedYear;
 
 @end
 
@@ -42,16 +55,14 @@
     if (self) {
         _visibleCells = [[NSMutableArray alloc] initWithCapacity:12];
         
-        _title = [[UIButton alloc] init];
-        [_title setTitleColor:[UIColor blueColor] forState:UIControlStateNormal];
-        [_title.titleLabel setFont:[UIFont systemFontOfSize:22]];
-        [_title.titleLabel setTextAlignment:NSTextAlignmentCenter];
-        [_title addTarget:self action:@selector(showYearPicker)
+        _yearTitle = [[UIButton alloc] init];
+        [_yearTitle setTitleColor:[UIColor blueColor] forState:UIControlStateNormal];
+        [_yearTitle.titleLabel setFont:[UIFont systemFontOfSize:22]];
+        [_yearTitle.titleLabel setTextAlignment:NSTextAlignmentCenter];
+        [_yearTitle addTarget:self action:@selector(showYearPicker)
               forControlEvents:UIControlEventTouchUpInside];
         
-//        _title = [[UILabel alloc]initWithFrame:CGRectMake(0,0, self.bounds.size.width, 150)];
-//        _title.textAlignment = NSTextAlignmentCenter;
-        [self addSubview:_title];
+        [self addSubview:_yearTitle];
         
         _backButton = [[UIButton alloc] init];
         [_backButton setTitleColor:[UIColor blueColor] forState:UIControlStateNormal];
@@ -68,6 +79,8 @@
        [self addSubview:_forwardButton];
         
         self.backgroundColor = [UIColor whiteColor];
+        
+        _currentMonth = [self.calendar components:NSDayCalendarUnit|NSMonthCalendarUnit|NSYearCalendarUnit fromDate:[NSDate date]];
         
         [self configureSwipeEvents];
     }
@@ -96,7 +109,7 @@
     [[self backButton] setFrame:CGRectMake(10, roundf(headerSize.height / 2 - previousMonthButtonSize.height / 2),
                                            previousMonthButtonSize.width, previousMonthButtonSize.height)];
     
-    [[self title] setFrame:CGRectMake(roundf(headerSize.width / 2 - titleSize.width / 2),
+    [[self yearTitle] setFrame:CGRectMake(roundf(headerSize.width / 2 - titleSize.width / 2),
                                       roundf(headerSize.height / 2 - titleSize.height / 2),
                                       titleSize.width, titleSize.height)];
     
@@ -107,7 +120,7 @@
     CGFloat monthCellWidth = 0;
     monthCellWidth = roundf(viewSize.width / 4);
     
-    CGFloat yearRangeHeaderEndY = CGRectGetMaxY([[self title] frame]);
+    CGFloat yearRangeHeaderEndY = CGRectGetMaxY([[self yearTitle] frame]);
     CGFloat monthCellHeight = 0;
     
     if (viewSize.width > viewSize.height) {
@@ -160,37 +173,15 @@
     [self reloadData];
 }
 
-- (NSCalendar *)calendar
-{
-    static NSCalendar *calendar = nil;
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        calendar = [NSCalendar autoupdatingCurrentCalendar];
-    });
-    return calendar;
-}
 
-- (void) setDisplayedMonth:(NSDateComponents *)month
-{
-    _displayedMonth = [month copy];
-    [self setDisplayedYearTitle:month];
-}
-
-
-- (void) setCurrentMonth:(NSDateComponents *)month
-{
-    _currentMonth = month;
-    [self setDisplayedMonth:month];
-}
 
 - (void) reloadData
 {
-
     //Our visible cells are stored in a 0-based array
     //Where as months start at 1 -> Jan
     NSInteger indexOfCell = 0;
     NSCalendar *calendar = [self calendar];
-    int displayedYear = (int)[self.displayedMonth year];
+    int displayedYear = (int)[self.displayedYear year];
     
     for (NSInteger month = 1; month <= 12; month++ ){
         RDVCalendarPickerCell* monthCell = _visibleCells[indexOfCell];
@@ -223,39 +214,115 @@
     
 }
 
+#pragma mark - Updating Year shown
 
-- (void) setDisplayedYearTitle:(NSDateComponents *)month
+- (void) setDisplayedYear:(NSDateComponents *)year
+{
+    // need to make a copy here because the displayed year is manipulated
+    // through navigation. However, those changes might be abandoned by the user
+    _displayedYear = [year copy];
+    [self setDisplayedYearTitle:year];
+}
+
+// Method provided for clarity around assigning date components
+// for a 'month' into that of a 'year'
+- (void) setDisplayedYearBasedOnMonth:(NSDateComponents *)month
+{
+    [self setDisplayedYear:month];
+}
+
+- (void) setSelectedMonth:(NSDateComponents *)selectedMonth
+{
+    _selectedMonth = selectedMonth;
+    [self setDisplayedYearBasedOnMonth:selectedMonth];
+}
+
+
+- (void) setDisplayedYearTitle:(NSDateComponents *)year
 {
     NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
     formatter.dateFormat = @"yyyy";
     
-    NSDate *date = [month.calendar dateFromComponents:month];
-    NSString* yearTitle = [[NSString alloc] initWithString:[formatter stringFromDate:date]];
+    NSDate *date = [year.calendar dateFromComponents:year];
+    NSString* updatedYearTitle = [[NSString alloc] initWithString:[formatter stringFromDate:date]];
     
-    [self.title setTitle:yearTitle forState:UIControlStateNormal];
+    [self.yearTitle setTitle:updatedYearTitle forState:UIControlStateNormal];
 }
 
-
-- (void) setDisplayedYear:(NSInteger)year
+- (void) selectedMonth:(id)sender
 {
-    [self.displayedMonth setYear:year];
-    [self setDisplayedYearTitle:self.displayedMonth];
+    RDVCalendarPickerCell* selectedCell = (RDVCalendarPickerCell*) sender;
+    NSDateComponents* monthSelected = selectedCell.dateComponents;
+    
+    [_visibleCells makeObjectsPerformSelector:@selector(reset)];
+    
+    [selectedCell setSelected:YES];
+    [self setSelectedMonth:monthSelected];
+    
+    if ([self.delegate respondsToSelector:@selector(monthPickerView:didSelectMonth:)]) {
+        [self.delegate monthPickerView:self didSelectMonth:monthSelected];
+    }
 }
+
+#pragma mark - Navigation
 
 - (void) showNextYear
 {
-    NSInteger year = [[self displayedMonth] year] + 1;
-    [self setDisplayedYear:year];
+    NSInteger year = [[self displayedYear] year] + 1;
+    [self.displayedYear setYear:year];
+    [self setDisplayedYearTitle:self.displayedYear];
+   
     [self reloadData];
 }
 
 - (void) showPreviousYear
 {
-    NSInteger year = [[self displayedMonth] year] - 1;
-    [self setDisplayedYear:year];
+    NSInteger year = [[self displayedYear] year] - 1;
+    [self.displayedYear setYear:year];
+    [self setDisplayedYearTitle:self.displayedYear];
+    
     [self reloadData];
 }
 
+- (void)showYearPicker{
+    CGRect yearPickerFrame = CGRectMake(0, 0, CGRectGetWidth(self.frame), CGRectGetHeight(self.frame));
+    
+    _yearPickerView = [[RDVCalendarYearPickerView  alloc] initWithFrame:yearPickerFrame];
+    
+    [_yearPickerView setAutoresizingMask:UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight];
+    [_yearPickerView  setBackgroundColor:[UIColor whiteColor]];
+    [_yearPickerView  setDelegate:self];
+    [_yearPickerView setSelectedYear:[self.displayedYear year]];
+    
+    _yearPickerView.currentYearColor = _currentMonthColor;
+    _yearPickerView.selectedYearColor = _selectedMonthColor;
+    _yearPickerView.normalYearColor = _normalMonthColor;
+    
+    [_yearPickerView.backButton setTitleColor:[self.backButton titleColorForState:UIControlStateNormal] forState:UIControlStateNormal];
+    _yearPickerView.backButton.titleLabel.font = self.backButton.titleLabel.font;
+    
+    [_yearPickerView.forwardButton setTitleColor:[self.forwardButton titleColorForState:UIControlStateNormal] forState:UIControlStateNormal];
+    _yearPickerView.forwardButton.titleLabel.font = self.forwardButton.titleLabel.font;
+    
+    [_yearPickerView.rangeTitle setFont:self.yearTitle.titleLabel.font];
+    
+    _showingYearPicker = true;
+    
+    [self addSubview: _yearPickerView];
+}
+
+- (void)yearPickerView:(RDVCalendarYearPickerView *)yearPickerView didSelectYear:(NSInteger)year
+{
+    _showingYearPicker = false;
+    
+    [self.displayedYear setYear:year];
+    [self setDisplayedYearTitle:self.displayedYear];
+
+    [_yearPickerView removeFromSuperview];
+    
+}
+
+#pragma mark - Swipe events
 
 -(void) configureSwipeEvents
 {
@@ -284,60 +351,16 @@
     }];
 }
 
-- (void) selectedMonth:(id)sender
+#pragma mark - Helper methods
+
+- (NSCalendar *)calendar
 {
-    RDVCalendarPickerCell* selectedCell = (RDVCalendarPickerCell*) sender;
-    NSDateComponents* monthSelected = selectedCell.dateComponents;
-    
-    [_visibleCells makeObjectsPerformSelector:@selector(reset)];
-    
-    [selectedCell setSelected:YES];
-    [self setSelectedMonth:monthSelected];
-    
-    if ([self.delegate respondsToSelector:@selector(monthPickerView:didSelectMonth:)]) {
-        [self.delegate monthPickerView:self didSelectMonth:monthSelected];
-    }
+    static NSCalendar *calendar = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        calendar = [NSCalendar autoupdatingCurrentCalendar];
+    });
+    return calendar;
 }
-
-#pragma mark - Navigation
-
-- (void)showYearPicker{
-    CGRect yearPickerFrame = CGRectMake(0, 0, CGRectGetWidth(self.frame), CGRectGetHeight(self.frame));
-    
-    _yearPickerView = [[RDVCalendarYearPickerView  alloc] initWithFrame:yearPickerFrame];
-    
-    [_yearPickerView setAutoresizingMask:UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight];
-    [_yearPickerView  setBackgroundColor:[UIColor whiteColor]];
-    [_yearPickerView  setDelegate:self];
-    [_yearPickerView setAnchorYear:[self.displayedMonth year] ];
-    [_yearPickerView setSelectedYear:[self.displayedMonth year]];
-    
-    _yearPickerView.currentYearColor = _currentMonthColor;
-    _yearPickerView.selectedYearColor = _selectedMonthColor;
-    _yearPickerView.normalYearColor = _normalMonthColor;
-    
-    [_yearPickerView.backButton setTitleColor:[self.backButton titleColorForState:UIControlStateNormal] forState:UIControlStateNormal];
-    _yearPickerView.backButton.titleLabel.font = self.backButton.titleLabel.font;
-    
-    [_yearPickerView.forwardButton setTitleColor:[self.forwardButton titleColorForState:UIControlStateNormal] forState:UIControlStateNormal];
-    _yearPickerView.forwardButton.titleLabel.font = self.forwardButton.titleLabel.font;
-    
-    _yearPickerView.title.font = self.title.font;
-    
-    _showingYearPicker = true;
-    [self addSubview: _yearPickerView];
-}
-
-- (void)yearPickerView:(RDVCalendarYearPickerView *)yearPickerView didSelectYear:(NSInteger)year
-{
-    _showingYearPicker = false;
-    
-    [self setDisplayedYear:year];
-    
-    [_yearPickerView removeFromSuperview];
-    
-}
-
-
 
 @end

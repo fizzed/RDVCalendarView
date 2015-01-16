@@ -27,18 +27,30 @@
 
 @interface RDVCalendarPickerCell : UIButton
 
-/*
- * Prepares a year cell for reuse by the Year Picker view.
+/**
+ * Returns the color of the current day cell.
+ */
+- (NSString *) getDisplayMonth;
+
+/**
+ * Returns the color of the current day cell.
+ */
+- (NSString *) getDisplayYear;
+
+/**
+ * Prepares a cell for reuse by a Picker view.
  */
 - (void)reset;
 
-- (NSString *) getDisplayMonth;
-- (NSString *) getDisplayYear;
-
-@property (nonatomic) NSDateComponents * dateComponents;
 /**
- * Dynamically create image so it can be set as Backgound Image for a given UI State
- * Needed because Objective-C does not allow for setting background color for a given UI State
+ * Date components that comprise date contained in cell
+ */
+@property (nonatomic) NSDateComponents *dateComponents;
+
+/**
+ * Dynamically create image so it can be set as Backgound Image for a given UI State.
+ * Needed because Objective-C does not allow for setting background color 
+ * for a given UI State, only background image.
  */
 + (UIImage *) imageFromColor:(UIColor *)color;
 

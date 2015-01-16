@@ -1,5 +1,5 @@
 //
-//  RDVCalendarYearPickerCell.m
+//  RDVCalendarPickerCell.m
 //  RDVCalendar
 //
 // Copyright (c) 2014 Douglas Drouillard
@@ -26,7 +26,6 @@
 
 @implementation RDVCalendarPickerCell
 
-
 -(NSString *) getDisplayMonth
 {
     NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
@@ -44,11 +43,10 @@
     NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
     formatter.dateFormat = @"YYYY";
     return [formatter stringFromDate: [self.dateComponents date]];
-    
 }
 
 
--(void) reset{
+-(void) reset {
     [self setHighlighted:NO];
     [self setSelected:NO];
 }

@@ -34,9 +34,9 @@
 @property (nonatomic, readonly) RDVCalendarYearPickerView* yearPickerView;
 
 /**
- * The Title for range of months displayed
+ * Returns the label, which contains the name of the currently displayed year. (read-only)
  */
-@property UIButton *title;
+@property (nonatomic, readonly) UIButton *yearTitle;
 
 /**
  * Returns the back (previous month) button. (read-only)
@@ -64,24 +64,9 @@
 @property (nonatomic) UIColor *selectedMonthColor;
 
 /**
- * The initial month.
- */
-@property (nonatomic) NSDateComponents *currentMonth;
-
-/**
- * The current month being shown.
- */
-@property (nonatomic) NSDateComponents *displayedMonth;
-
-/**
  * Returns the currently selected month.
  */
 @property (nonatomic) NSDateComponents *selectedMonth;
-
-/**
- * Sets the selected month picker cell.
- */
--(void) setCurrentMonth:(NSDateComponents *)month;
 
 
 @end

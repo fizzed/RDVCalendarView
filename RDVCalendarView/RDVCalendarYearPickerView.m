@@ -42,9 +42,9 @@ NSInteger const NumYearsToGoBackToStartRange = 5;
     if (self) {
         _visibleCells = [[NSMutableArray alloc] initWithCapacity:YearsInRange];
         
-        _title = [[UILabel alloc]initWithFrame:CGRectMake(0,0, self.bounds.size.width, 150)];
-        _title.textAlignment = NSTextAlignmentCenter;
-        [self addSubview:_title];
+        _rangeTitle = [[UILabel alloc]initWithFrame:CGRectMake(0,0, self.bounds.size.width, 150)];
+        _rangeTitle.textAlignment = NSTextAlignmentCenter;
+        [self addSubview:_rangeTitle];
         
         _backButton = [[UIButton alloc] init];
         [_backButton setTitleColor:[UIColor blueColor] forState:UIControlStateNormal];
@@ -83,21 +83,21 @@ NSInteger const NumYearsToGoBackToStartRange = 5;
                                   50);
     
     // Layout header view
-    [[self backButton] setFrame:CGRectMake(10, roundf(headerSize.height / 2 - previousMonthButtonSize.height / 2),
+    [self.backButton setFrame:CGRectMake(10, roundf(headerSize.height / 2 - previousMonthButtonSize.height / 2),
                                            previousMonthButtonSize.width, previousMonthButtonSize.height)];
     
-    [[self title] setFrame:CGRectMake(roundf(headerSize.width / 2 - titleSize.width / 2),
+    [self.rangeTitle setFrame:CGRectMake(roundf(headerSize.width / 2 - titleSize.width / 2),
                                            roundf(headerSize.height / 2 - titleSize.height / 2),
                                            titleSize.width, titleSize.height)];
     
-    [[self forwardButton] setFrame:CGRectMake(headerSize.width - 10 - nextMonthButtonSize.width,
+    [self.forwardButton setFrame:CGRectMake(headerSize.width - 10 - nextMonthButtonSize.width,
                                               roundf(headerSize.height / 2 - nextMonthButtonSize.height / 2),
                                               nextMonthButtonSize.width, nextMonthButtonSize.height)];
     
     CGFloat yearCellWidth = 0;
     yearCellWidth = roundf(viewSize.width / 4);
     
-    CGFloat yearRangeHeaderEndY = CGRectGetMaxY([[self title] frame]);
+    CGFloat yearRangeHeaderEndY = CGRectGetMaxY([self.rangeTitle frame]);
     CGFloat yearCellHeight = 0;
     
     if (viewSize.width > viewSize.height) {
@@ -159,7 +159,7 @@ NSInteger const NumYearsToGoBackToStartRange = 5;
 
 - (NSInteger) startYearOfRange
 {
-    return _currentAnchorYear - NumYearsToGoBackToStartRange;
+    return _anchorYear - NumYearsToGoBackToStartRange;
 }
 
 - (NSInteger) endYearOfRange
@@ -169,7 +169,7 @@ NSInteger const NumYearsToGoBackToStartRange = 5;
 
 - (void) updateTitle:(NSInteger)year
 {
-    _title.text = [NSString stringWithFormat:@"%ld-%ld", self.startYearOfRange, self.endYearOfRange];
+    _rangeTitle.text = [NSString stringWithFormat:@"%ld-%ld", self.startYearOfRange, self.endYearOfRange];
 }
 
 - (void) reloadData
@@ -198,21 +198,21 @@ NSInteger const NumYearsToGoBackToStartRange = 5;
     [self setAnchorYear:year];
 }
 
--(void) setAnchorYear:(NSInteger)year
-{
-    _currentAnchorYear = year;
-    [self updateTitle:year];
-}
+//-(void) setAnchorYear:(NSInteger)year
+//{
+//    _currentAnchorYear = year;
+//    [self updateTitle:year];
+//}
 
 - (void) showNextYear
 {
-    [self setAnchorYear:self.currentAnchorYear + YearsInRange];
+    [self setAnchorYear:self.anchorYear + YearsInRange];
     [self reloadData];
 }
 
 - (void) showPreviousYear
 {
-    [self setAnchorYear:self.currentAnchorYear - YearsInRange];
+    [self setAnchorYear:self.anchorYear - YearsInRange];
     [self reloadData];
 }
 
